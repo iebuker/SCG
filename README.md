@@ -46,7 +46,7 @@ K_t = torch.as_tensor(Kmat, device=scr.DEVICE, dtype=scr.DTYPE)
 out = scr.cavi(Y_t, K_t, init, max_iter=40)
 ```
 
-See `docs/introduction.qmd` for a full worked example on simulated
+See `docs/vignette.qmd` for a full worked example on simulated
 spatial transcriptomics data.
 
 ## Authors
