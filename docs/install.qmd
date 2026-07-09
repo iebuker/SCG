@@ -1,0 +1,58 @@
+---
+title: "Installation & Quickstart"
+---
+
+## System Requirements
+
+- Python $\geq$ 3.9
+- GPU (CUDA) optional but recommended for datasets >20K spots
+
+## Installation
+
+```bash
+pip install git+https://github.com/iebuker/SCG.git
+```
+
+## Quickstart
+
+The core SCG workflow has four steps: simulate or load data, build the kernel, fit the model, and classify edges.
+
+### 1. Setup
+
+```python
+import torch
+import scr
+
+scr.set_seed(123)
+```
+
+### 2. Data & kernel
+
+```python
+Y, S, info = scr.simulate_data_cov(N=2500, p=30)
+
+init = scr.scr_init(Y, L=7, K=7, device=scr.DEVICE, dtype=scr.DTYPE)
+
+hp = scr.pick_kernel_params(init, S)
+Kmat = scr.rq_kernel(S, rho=hp["rho"], alpha=hp["alpha"])
+```
+
+### 3. Fit
+
+```python
+fit = scr.cavi(
+    torch.as_tensor(Y, device=scr.DEVICE, dtype=scr.DTYPE),
+    torch.as_tensor(Kmat, device=scr.DEVICE, dtype=scr.DTYPE),
+    init,
+    max_iter=60,
+)
+```
+
+### 4. Identify SCGs
+
+```python
+results = scr.classify_edges(fit["params"], M=500, alpha=0.1)
+print(results[results["scg"]])
+```
+
+For a full walkthrough using real data, see the [Data Application](data-application.qmd) page.

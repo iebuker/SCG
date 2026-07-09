@@ -1,0 +1,35 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "SCG"
+  repo-url: https://github.com/iebuker/SCG
+  repo-actions: [issue]
+  page-navigation: true
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: install.qmd
+        text: Installation
+      - href: data-application.qmd
+        text: Data Application
+      - href: r-usage.qmd
+        text: R Usage
+    right:
+      - icon: github
+        href: https://github.com/iebuker/SCG
+  page-footer:
+    left: "Buker, Ni, Hicks, Kang & Acharyya. Manuscript in preparation."
+    right:
+      - icon: github
+        href: https://github.com/iebuker/SCG
+
+format:
+  html:
+    theme: flatly
+    toc: true
+    toc-depth: 3
+    code-copy: true
+    code-tools: true
