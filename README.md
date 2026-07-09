@@ -8,9 +8,9 @@ Observations `Y` (`n` spots × `p` genes) are modelled as
 Y[i, :] = Theta @ Xi_i @ eta_i + epsilon_i
 ```
 
-where `Theta` (p × L) are global gene loadings, `Xi_i` (L × K) are
-spatially varying coefficients at spot i drawn from independent Gaussian
-process priors, and `eta_i` (K,) are latent factor scores. Inference is
+where `Theta` (`p` × `L`) are global gene loadings, `Xi_i` (`L` × `K`) are
+spatially varying coefficients at spot `i` drawn from independent Gaussian
+process priors, and `eta_i` (`K`,) are latent factor scores. Inference is
 performed via coordinate-ascent variational inference (CAVI) under a
 mean-field approximation.
 
