@@ -1,0 +1,184 @@
+[
+  {
+    "objectID": "r-usage.html",
+    "href": "r-usage.html",
+    "title": "R Usage",
+    "section": "",
+    "text": "SCG is implemented in Python but can be accessed from R via the reticulate package. This page demonstrates how to load the pre-computed SCG results from the data application and work with them in R. We also show how to fit the model from scratch in R for users who prefer that workflow."
+  },
+  {
+    "objectID": "r-usage.html#overview",
+    "href": "r-usage.html#overview",
+    "title": "R Usage",
+    "section": "",
+    "text": "SCG is implemented in Python but can be accessed from R via the reticulate package. This page demonstrates how to load the pre-computed SCG results from the data application and work with them in R. We also show how to fit the model from scratch in R for users who prefer that workflow."
+  },
+  {
+    "objectID": "r-usage.html#setup",
+    "href": "r-usage.html#setup",
+    "title": "R Usage",
+    "section": "Setup",
+    "text": "Setup\n\n\n\n\n\n\nNote\n\n\n\nReplace the path in use_python() with the path to your own Python installation that has scr installed. To find it, run which python or which python3 in your terminal. Please see reticulate for further guidance.\n\n\n\nlibrary(reticulate)\nlibrary(ggplot2)\nlibrary(dplyr)\n\n\nAttaching package: 'dplyr'\n\n\nThe following objects are masked from 'package:stats':\n\n    filter, lag\n\n\nThe following objects are masked from 'package:base':\n\n    intersect, setdiff, setequal, union\n\nuse_python(\"~/.pyenv/versions/3.11.14/bin/python\")\nnp &lt;- import(\"numpy\")"
+  },
+  {
+    "objectID": "r-usage.html#loading-pre-computed-results",
+    "href": "r-usage.html#loading-pre-computed-results",
+    "title": "R Usage",
+    "section": "Loading Pre-computed Results",
+    "text": "Loading Pre-computed Results\nThe results from the data application are saved in ../results/ and can be loaded directly in R without re-fitting the model.\n\nSCG Classifications\n\nresults &lt;- read.csv(\"../results/results.csv\")\nspot_info &lt;- read.csv(\"../data/spot_info.csv\")\ngene_names &lt;- read.csv(\"../data/gene_names.csv\")\n\nscgs &lt;- results[results$scg == \"True\", ]\ncat(nrow(scgs), \"SCGs identified out of\", nrow(results), \"edges\\n\")\n\n143 SCGs identified out of 1275 edges\n\n\n\n\nCorrelation Fields\n\nCorr_est &lt;- np$load(\"../results/Corr_est.npy\")\ndim(Corr_est)\n\n[1] 4727   51   51"
+  },
+  {
+    "objectID": "r-usage.html#visualizing-spatially-varying-edges",
+    "href": "r-usage.html#visualizing-spatially-varying-edges",
+    "title": "R Usage",
+    "section": "Visualizing Spatially Varying Edges",
+    "text": "Visualizing Spatially Varying Edges\n\nboundary_colors &lt;- c(\"T\" = \"#7651A6\", \"N\" = \"#2E7D6E\", \"I\" = \"#C4952D\")\n\nplot_corr_field &lt;- function(\n  Corr_est,\n  spot_info,\n  g,\n  g_prime,\n  gene_names = NULL\n) {\n  field &lt;- Corr_est[, g + 1, g_prime + 1] # convert 0-indexed to 1-indexed\n\n  df &lt;- data.frame(\n    x = spot_info$x,\n    y = spot_info$y,\n    corr = field,\n    region = spot_info$region\n  )\n\n  vmax &lt;- max(abs(df$corr))\n\n  g_label &lt;- if (!is.null(gene_names)) {\n    gene_names$gene[g + 1]\n  } else {\n    as.character(g)\n  }\n  g_prime_label &lt;- if (!is.null(gene_names)) {\n    gene_names$gene[g_prime + 1]\n  } else {\n    as.character(g_prime)\n  }\n\n  ggplot(df, aes(x = x, y = y, color = corr)) +\n    geom_point(size = 2.0) +\n    scale_color_gradient2(\n      low = \"#2166ac\",\n      mid = \"white\",\n      high = \"#d6604d\",\n      midpoint = 0,\n      limits = c(-vmax, vmax),\n      name = \"Correlation\"\n    ) +\n    coord_equal() +\n    ggtitle(paste0(g_label, \"—\", g_prime_label)) +\n    theme_void() +\n    theme(\n      legend.position = \"right\",\n      plot.title = element_text(hjust = 0.5, size = 11)\n    )\n}\n\nplot_corr_field(\n  Corr_est,\n  spot_info,\n  g = 2,\n  g_prime = 4,\n  gene_names = gene_names\n)\n\n\n\n\n\n\n\nplot_corr_field(\n  Corr_est,\n  spot_info,\n  g = 39,\n  g_prime = 49,\n  gene_names = gene_names\n)"
+  },
+  {
+    "objectID": "r-usage.html#fitting-the-model-from-r",
+    "href": "r-usage.html#fitting-the-model-from-r",
+    "title": "R Usage",
+    "section": "Fitting the Model from R",
+    "text": "Fitting the Model from R\nUsers who wish to fit SCG from scratch in R can do so via reticulate. The workflow mirrors the Python data application exactly.\n\nscr &lt;- import(\"scr\")\ntorch &lt;- import(\"torch\")\n\nY_np &lt;- as.matrix(read.csv(\"../data/Y.csv\"))\nY_np &lt;- t(Y_np)\n\ndims &lt;- dim(Y_np)\nN &lt;- dims[1]\nP &lt;- dims[2]\nK &lt;- L &lt;- as.integer(round(2 * log(P)))\n\ninit &lt;- scr$scr_init(\n  Y = Y_np,\n  L = L,\n  K = K,\n  a_delta = c(2.1, 3.1),\n  b_delta = 1.0,\n  a0 = 5.0,\n  b0 = 0.5,\n  nu = 5.0,\n  spca_center = TRUE,\n  spca_alpha = 0.01,\n  spca_ridge_alpha = 0.01,\n  device = scr$DEVICE,\n  dtype = scr$DTYPE\n)\n\nkernel_hypers &lt;- scr$pick_kernel_params(\n  init = init,\n  S = as.matrix(spot_info[, c(\"x\", \"y\")])\n)\nK_np &lt;- scr$rq_kernel(\n  as.matrix(spot_info[, c(\"x\", \"y\")]),\n  v2 = 1.0,\n  rho = 0.1 * kernel_hypers$rho,\n  alpha = kernel_hypers$alpha\n)\n\nfit &lt;- scr$cavi(\n  torch$as_tensor(Y_np, device = scr$DEVICE, dtype = scr$DTYPE),\n  torch$as_tensor(K_np, device = scr$DEVICE, dtype = scr$DTYPE),\n  init,\n  max_iter = 60L,\n  verbose = FALSE\n)\n\nresults &lt;- scr$classify_edges(fit$params, M = 500L, alpha = 0.1)\n\n\n\n\n\n\n\nNote\n\n\n\nWhen passing data from R to Python via reticulate, NumPy arrays are non-writable by default. This triggers a PyTorch warning during torch$as_tensor that can be safely ignored."
+  },
+  {
+    "objectID": "r-usage.html#session-info",
+    "href": "r-usage.html#session-info",
+    "title": "R Usage",
+    "section": "Session Info",
+    "text": "Session Info\n\nsessionInfo()\n\nR version 4.5.2 (2025-10-31)\nPlatform: aarch64-apple-darwin20\nRunning under: macOS Tahoe 26.5.1\n\nMatrix products: default\nBLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib \nLAPACK: /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1\n\nlocale:\n[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8\n\ntime zone: America/Chicago\ntzcode source: internal\n\nattached base packages:\n[1] stats     graphics  grDevices utils     datasets  methods   base     \n\nother attached packages:\n[1] dplyr_1.2.1            ggplot2_4.0.2          reticulate_1.46.0.9000\n\nloaded via a namespace (and not attached):\n [1] vctrs_0.7.3        cli_3.6.6          knitr_1.51         rlang_1.2.0       \n [5] xfun_0.56          otel_0.2.0         png_0.1-9          generics_0.1.4    \n [9] S7_0.2.1           jsonlite_2.0.0     labeling_0.4.3     glue_1.8.0        \n[13] htmltools_0.5.9    scales_1.4.0       rmarkdown_2.30     grid_4.5.2        \n[17] tibble_3.3.1       evaluate_1.0.5     fastmap_1.2.0      yaml_2.3.12       \n[21] lifecycle_1.0.5    compiler_4.5.2     RColorBrewer_1.1-3 pkgconfig_2.0.3   \n[25] htmlwidgets_1.6.4  Rcpp_1.1.1-1.1     farver_2.1.2       lattice_0.22-9    \n[29] digest_0.6.39      R6_2.6.1           tidyselect_1.2.1   pillar_1.11.1     \n[33] magrittr_2.0.5     Matrix_1.7-4       withr_3.0.2        tools_4.5.2       \n[37] gtable_0.3.6"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "SCG: Spatially Co-expressed Gene Identification",
+    "section": "",
+    "text": "SCG identifies gene pairs whose co-expression relationship changes meaningfully across a tissue section — what we call Spatially Co-expressed Genes (SCGs). Rather than estimating a single network shared across all locations, SCG estimates spot-specific co-expression networks that vary continuously across the tissue, without requiring pre-defined regions or clusters.\nSCG is built on the Spatial Covariance Regression (SCR) framework: a spatially varying Bayesian factor model with GPU-accelerated coordinate-ascent variational inference that scales to modern platforms such as 10x Genomics Xenium (&gt;50,000 spots).\n\n\n\n(A) SCG decomposes gene expression into spatial bases and low-dimensional factors, yielding a parsimonious spatially varying covariance model. (B) SCGs are identified via Otsu thresholding on posterior spatial standard deviations, with FDR control at \\(\\alpha\\) = 0.1. (C) SCG outperforms spCorr on MCC and FPR across all simulated sample sizes (5K–50K spots); spCorr fails to scale beyond 20K. (D–F) Application to human breast cancer (Visium) recovers pathway-level network rewiring across tissue regions, with spatially varying correlation fields highlighting co-expression patterns in angiogenesis and tumor-promoting inflammation pathways."
+  },
+  {
+    "objectID": "index.html#overview",
+    "href": "index.html#overview",
+    "title": "SCG: Spatially Co-expressed Gene Identification",
+    "section": "",
+    "text": "SCG identifies gene pairs whose co-expression relationship changes meaningfully across a tissue section — what we call Spatially Co-expressed Genes (SCGs). Rather than estimating a single network shared across all locations, SCG estimates spot-specific co-expression networks that vary continuously across the tissue, without requiring pre-defined regions or clusters.\nSCG is built on the Spatial Covariance Regression (SCR) framework: a spatially varying Bayesian factor model with GPU-accelerated coordinate-ascent variational inference that scales to modern platforms such as 10x Genomics Xenium (&gt;50,000 spots).\n\n\n\n(A) SCG decomposes gene expression into spatial bases and low-dimensional factors, yielding a parsimonious spatially varying covariance model. (B) SCGs are identified via Otsu thresholding on posterior spatial standard deviations, with FDR control at \\(\\alpha\\) = 0.1. (C) SCG outperforms spCorr on MCC and FPR across all simulated sample sizes (5K–50K spots); spCorr fails to scale beyond 20K. (D–F) Application to human breast cancer (Visium) recovers pathway-level network rewiring across tissue regions, with spatially varying correlation fields highlighting co-expression patterns in angiogenesis and tumor-promoting inflammation pathways."
+  },
+  {
+    "objectID": "index.html#key-features",
+    "href": "index.html#key-features",
+    "title": "SCG: Spatially Co-expressed Gene Identification",
+    "section": "Key Features",
+    "text": "Key Features\n\nEstimates spot-level co-expression networks\nScales to Visium, Xenium, and other high-resolution ST platforms\nRigorous uncertainty quantification via variational posterior\nData-driven SCG identification with FDR control at 10%\nHardware-agnostic: runs on CPU or GPU"
+  },
+  {
+    "objectID": "index.html#performance",
+    "href": "index.html#performance",
+    "title": "SCG: Spatially Co-expressed Gene Identification",
+    "section": "Performance",
+    "text": "Performance\nSCG demonstrates strong and consistent recovery of spatially varying network structure across all spatial resolutions tested (5K–50K spots). Mean MCC ranged from 0.92 to 0.94, with TPR between 0.96 and 0.99 and FPR below 0.02 throughout, indicating reliable discrimination despite the class imbalance inherent to sparse networks. Against spCorr, SCG exceeded MCC by 0.10 to 0.20 at every matched sample size, ran five to seven times faster per edge, and scaled to resolutions where spCorr failed entirely.\n\n\n\nMetric\nSCG\nspCorr\n\n\n\n\nMCC\n0.92–0.94\n0.72–0.83\n\n\nTPR\n0.97–0.98\n0.81–1.00\n\n\nFPR\n0.01–0.02\n0.04–0.06\n\n\nMax spots\n50K+\n~20K"
+  },
+  {
+    "objectID": "index.html#applications",
+    "href": "index.html#applications",
+    "title": "SCG: Spatially Co-expressed Gene Identification",
+    "section": "Applications",
+    "text": "Applications\nSCG has been applied to:\n\nBreast cancer (10x Visium, ~4,700 spots): recovers pathway-level network rewiring across tumor, intermediate, and normal tissue regions\nAlzheimer’s disease (10x Xenium, ~57,000 spots): replicates and extends the plaque-induced gene (PIG) co-expression module across anatomical regions"
+  },
+  {
+    "objectID": "index.html#installation",
+    "href": "index.html#installation",
+    "title": "SCG: Spatially Co-expressed Gene Identification",
+    "section": "Installation",
+    "text": "Installation\nRequires Python \\(\\geq\\) 3.9. GPU support via CUDA is optional but recommended for datasets &gt;20K spots.\npip install git+https://github.com/iebuker/SCG.git"
+  },
+  {
+    "objectID": "index.html#citation",
+    "href": "index.html#citation",
+    "title": "SCG: Spatially Co-expressed Gene Identification",
+    "section": "Citation",
+    "text": "Citation\n\nManuscript in preparation."
+  },
+  {
+    "objectID": "data-application.html",
+    "href": "data-application.html",
+    "title": "Data Application",
+    "section": "",
+    "text": "We demonstrate SCG by analyzing an estrogen receptor-positive, progesterone receptor-negative, HER2-amplified invasive ductal carcinoma sample sequenced on the 10x Genomics Visium platform, comprising 4,728 spots measuring 1,173 genes (Zhao et al., 2021). The dataset was accompanied by pathologist annotations delineating tumor, intermediate, and normal regions. For demonstration purposes, we focus on the tumor-promoting inflammation pathway, which comprises 51 genes and \\({}^{51}C_{2} = 1{,}275\\) possible edges across 4,728 spots."
+  },
+  {
+    "objectID": "data-application.html#overview",
+    "href": "data-application.html#overview",
+    "title": "Data Application",
+    "section": "",
+    "text": "We demonstrate SCG by analyzing an estrogen receptor-positive, progesterone receptor-negative, HER2-amplified invasive ductal carcinoma sample sequenced on the 10x Genomics Visium platform, comprising 4,728 spots measuring 1,173 genes (Zhao et al., 2021). The dataset was accompanied by pathologist annotations delineating tumor, intermediate, and normal regions. For demonstration purposes, we focus on the tumor-promoting inflammation pathway, which comprises 51 genes and \\({}^{51}C_{2} = 1{,}275\\) possible edges across 4,728 spots."
+  },
+  {
+    "objectID": "data-application.html#setup",
+    "href": "data-application.html#setup",
+    "title": "Data Application",
+    "section": "Setup",
+    "text": "Setup\n\nimport os\nimport pickle\n\nimport numpy as np\nimport pandas as pd\nimport matplotlib.pyplot as plt\nfrom scipy.interpolate import NearestNDInterpolator\n\nimport torch\nimport scr\nimport importlib.metadata"
+  },
+  {
+    "objectID": "data-application.html#data",
+    "href": "data-application.html#data",
+    "title": "Data Application",
+    "section": "Data",
+    "text": "Data\nFor modeling purposes, we assume \\(\\boldsymbol{y}_i \\sim \\mathcal{N}_p(\\boldsymbol{0}, \\boldsymbol{\\Sigma})\\) where \\(\\boldsymbol{\\Sigma} = \\operatorname{diag}(\\sigma^2_1, \\dots, \\sigma^2_p)\\), so the observed count matrix must first undergo a suitable normalization. Here, data were normalized using the sctransform approach; however, SCG is agnostic to the choice of normalization and a rich literature on variance-stabilizing transformations for spatial omics count data exists. The model requires the expression matrix Y to be oriented as spots x genes and the spatial coordinates matrix S as spots x 2. Spot-level region annotations are not required by SCG but are included here for downstream visualization.\n\nY_np = pd.read_csv(\"../data/Y.csv\").to_numpy()\nspot_info = pd.read_csv(\"../data/spot_info.csv\")\n\nS_np = spot_info[[\"x\", \"y\"]].values\nspot_ids = spot_info[\"spot_id\"].values\nregion_annotation = spot_info[\"region\"].values\n\ngene_names = pd.read_csv(\"../data/gene_names.csv\")\n\n# SCG requires a spots x genes matrix\nY_np = Y_np.T\n\nN, P = Y_np.shape"
+  },
+  {
+    "objectID": "data-application.html#model-fitting",
+    "href": "data-application.html#model-fitting",
+    "title": "Data Application",
+    "section": "Model Fitting",
+    "text": "Model Fitting\n\nInitialization\nInitialization plays a critical role in variational inference. We provide scr.scr_init, which implements a sparse PCA-based warm start that performs well in practice (see Supplementary Materials for further details). The two key choices are \\(L\\) and \\(K\\): we recommend \\(L = \\text{round}(2 \\log G)\\) and \\(K = L\\) as conservative defaults, though \\(K\\) can alternatively be selected via SVD to explain a desired proportion of variance.\n\nK = L = np.round(2 * np.log(P)).astype(int)\n\ninit = scr.scr_init(\n    Y=Y_np,\n    L=L,\n    K=K,\n    a_delta=(2.1, 3.1),\n    b_delta=1.0,\n    a0=5.0,\n    b0=0.5,\n    nu=5.0,\n    spca_center=True,\n    spca_alpha=0.01,\n    spca_ridge_alpha=0.01,\n    device=scr.DEVICE,\n    dtype=scr.DTYPE,\n)\n\n\n\nKernel\nThe kernel function governs how spatial correlation decays with distance. scr.pick_kernel_params provides a data-driven heuristic for selecting hyperparameters from the initialization. For this dataset we scale the returned rho by 0.1, as the default length-scale produced overly broad spatial patterns; users should adjust this scaling if correlation fields appear too smooth or too noisy. Standardizing spatial coordinates prior to fitting can aid interpretability of the length-scale. Both squared-exponential and rational quadratic kernels are implemented; any other kernel can be substituted as needed.\n\nkernel_hypers = scr.pick_kernel_params(init=init, S=S_np, score_quantile=0.9)\n\nK_np = scr.rq_kernel(\n    S_np,\n    v2=1.0,\n    rho=0.1 * kernel_hypers[\"rho\"],\n    alpha=kernel_hypers[\"alpha\"],\n)\n\n\n\nCAVI\nModel fitting is done via coordinate-ascent variational inference (CAVI), which iteratively updates the variational parameters to maximize the evidence lower bound. We run for max_iter=60 iterations. Examining the convergence plot below, we note that 20–30 iterations constitute an ideal stopping point as the relative L2 change in variational parameters is quite small thereafter. Users should increase the maximum number of iterations if the relative L2 change has not flattened by the final iteration.\n\nfit = scr.cavi(\n    torch.as_tensor(Y_np, device=scr.DEVICE, dtype=scr.DTYPE),\n    torch.as_tensor(K_np, device=scr.DEVICE, dtype=scr.DTYPE),\n    init,\n    max_iter=60,\n    verbose=False,\n)\n\n\nwith open(\"../results/fit.pkl\", \"rb\") as f:\n    fit = pickle.load(f)\n\n\n\nConvergence\n\ntrace = fit[\"trace\"]\nplt.plot(trace[\"L2_rel\"])\nplt.xlabel(\"Iteration\")\nplt.ylabel(\"Relative L2 change\")\nplt.title(\"CAVI Convergence\")\nplt.show()"
+  },
+  {
+    "objectID": "data-application.html#scg-identification",
+    "href": "data-application.html#scg-identification",
+    "title": "Data Application",
+    "section": "SCG Identification",
+    "text": "SCG Identification\nSCG identification is performed via scr.classify_edges, which applies Otsu thresholding to the posterior spatial standard deviations of each edge to obtain a data-driven threshold, then classifies edges as SCGs by controlling the false discovery rate at \\(\\alpha = 0.1\\). The function returns a dataframe with one row per edge and a boolean scg column indicating classification. For this dataset, 143 of 1,275 possible edges were identified as SCGs, corresponding to 11.2% of all edges in the tumor-promoting inflammation pathway.\nTo avoid materializing an M x N x p x p array, where M denotes the number of posterior samples, scr.classify_edges takes a streaming approach, materializing only an M x E array where E denotes the number of edges (i.e., \\(\\binom{p}{2}\\)). Users who wish to obtain posterior samples for downstream analysis can use the scr.sample_* functions.\n\nresults = scr.classify_edges(fit[\"params\"], M=500, alpha=0.1)\nresults.to_csv(\"../results/results.csv\")\n\n\nresults = pd.read_csv(\"../results/results.csv\", index_col=0)\n\nscgs = results[results[\"scg\"]]\nprint(f\"{len(scgs)} SCGs identified out of {len(results)} edges\")\n\n143 SCGs identified out of 1275 edges"
+  },
+  {
+    "objectID": "data-application.html#results",
+    "href": "data-application.html#results",
+    "title": "Data Application",
+    "section": "Results",
+    "text": "Results\n\nReconstructing Correlation Fields\nThe scr.cavi function returns a dict {\"params\": params, \"trace\": trace} where params contains Torch tensors. We provide the convenience function scr.to_numpy for easy conversion to NumPy arrays.\nThe analytical posterior mean covariance at each spot \\(i\\) is given as:\n\\[\\mathbb{E}_q[\\boldsymbol{\\Sigma}(\\mathbf{s}_i)] = \\boldsymbol{\\mu}_\\Theta A_i \\boldsymbol{\\mu}_\\Theta^\\top + \\text{diag}\\left(\\text{tr}(A_i \\boldsymbol{\\Sigma}_g^\\Theta)\\right)_{g=1}^G + \\mathbb{E}_q[\\boldsymbol{\\Sigma}_0]\\]\nwhere \\(A_i = \\boldsymbol{\\mu}_{\\Xi_i} \\boldsymbol{\\mu}_{\\Xi_i}^\\top + \\text{diag}\\left(\\sum_k v_{i,rk}^\\Xi\\right)\\) is the posterior second moment of \\(\\Xi(\\mathbf{s}_i)\\), the einsum computes \\(\\text{tr}(A_i \\boldsymbol{\\Sigma}_g^\\Theta)\\) for each gene \\(g\\) capturing uncertainty from the global loadings \\(\\Theta\\), and \\(\\mathbb{E}_q[\\boldsymbol{\\Sigma}_0]\\) is the residual variance. The resulting covariance array is then converted to correlation matrices using scr.cov2cor.\n\nparams = fit[\"params\"]\nmu_Theta = scr.to_numpy(params[\"mu_Theta\"])\nmu_Xi = scr.to_numpy(params[\"mu_Xi\"])\nvar_Xi = scr.to_numpy(params[\"var_Xi\"])\nsigma2 = scr.to_numpy(params[\"b_sigma\"]) / (scr.to_numpy(params[\"a_sigma\"]) - 1)\nSigma_Theta = scr.to_numpy(params[\"Sigma_Theta_list\"])\n\nSigma_est = np.empty((N, P, P))\ndiag_sigma = np.diag(sigma2)\n\nfor i in range(N):\n    A_i = mu_Xi[i] @ mu_Xi[i].T + np.diag(var_Xi[i].sum(axis=1))\n    diag_corr = np.einsum(\"kl,gkl-&gt;g\", A_i, Sigma_Theta)\n    Sigma_est[i] = mu_Theta @ A_i @ mu_Theta.T + np.diag(diag_corr) + diag_sigma\n\nCorr_est = np.array([scr.cov2cor(C) for C in Sigma_est])\nnp.save(\"../results/Corr_est.npy\", Corr_est)\n\n\nCorr_est = np.load(\"../results/Corr_est.npy\")\n\n\n\nSpatially Varying Edges\nWe plot two representative SCG pairs alongside pathologist-annotated region boundaries. For each edge, the color at each spot encodes the posterior mean correlation, with red indicating positive co-expression and blue indicating negative co-expression.\n\nboundary_colors = {\n    \"T\": \"#1B9E77\",\n    \"N\": \"#E6AB02\",\n}\n\n\ndef plot_corr_field(Corr, S, region_annotation, g, g_prime, gene_list=None):\n    field = Corr[:, g, g_prime]\n    df = pd.DataFrame(S, columns=[\"x\", \"y\"])\n    df[\"corr\"] = field\n    df[\"region\"] = region_annotation\n\n    vmax = df[\"corr\"].abs().max()\n\n    regions = pd.Categorical(df[\"region\"])\n    region_codes = regions.codes\n    region_names = regions.categories\n\n    grid_x, grid_y = np.meshgrid(\n        np.linspace(df[\"x\"].min(), df[\"x\"].max(), 300),\n        np.linspace(df[\"y\"].min(), df[\"y\"].max(), 300),\n    )\n    interp = NearestNDInterpolator(S, region_codes)\n    grid_labels = interp(grid_x, grid_y)\n\n    fig, ax = plt.subplots(figsize=(5, 4))\n    sc = ax.scatter(\n        df[\"x\"], df[\"y\"], c=df[\"corr\"], cmap=\"RdBu_r\", vmin=-vmax, vmax=vmax, s=10\n    )\n    plt.colorbar(sc, ax=ax, label=\"Correlation\")\n\n    handles = []\n    for region, color in boundary_colors.items():\n        if region not in list(region_names):\n            continue\n        code = list(region_names).index(region)\n        binary_grid = (grid_labels == code).astype(float)\n        ax.contour(\n            grid_x,\n            grid_y,\n            binary_grid,\n            levels=[0.5],\n            colors=[color],\n            linewidths=1.5,\n        )\n        handles.append(plt.Line2D([0], [0], color=color, lw=1.5, label=region))\n\n    ax.legend(handles=handles, fontsize=7)\n\n    g_label = gene_list[g] if gene_list is not None else g\n    g_prime_label = gene_list[g_prime] if gene_list is not None else g_prime\n    ax.set_title(f\"{g_label}—{g_prime_label}\")\n    ax.axis(\"off\")\n    plt.show()\n\n\nplot_corr_field(\n    Corr_est,\n    S_np,\n    region_annotation=region_annotation,\n    g=2,\n    g_prime=4,\n    gene_list=gene_names[\"gene\"].values,\n)\n\nplot_corr_field(\n    Corr_est,\n    S_np,\n    region_annotation=region_annotation,\n    g=39,\n    g_prime=49,\n    gene_list=gene_names[\"gene\"].values,\n)"
+  },
+  {
+    "objectID": "data-application.html#session-info",
+    "href": "data-application.html#session-info",
+    "title": "Data Application",
+    "section": "Session Info",
+    "text": "Session Info\n\nfor pkg in [\"numpy\", \"torch\", \"scipy\", \"scikit-learn\", \"scr\"]:\n    print(f\"{pkg}: {importlib.metadata.version(pkg)}\")\n\nnumpy: 2.4.6\ntorch: 2.12.0\nscipy: 1.17.1\nscikit-learn: 1.8.0\nscr: 0.1.0"
+  },
+  {
+    "objectID": "install.html",
+    "href": "install.html",
+    "title": "Installation & Quickstart",
+    "section": "",
+    "text": "Python \\(\\geq\\) 3.9\nGPU (CUDA) optional but recommended for datasets &gt;20K spots"
+  },
+  {
+    "objectID": "install.html#system-requirements",
+    "href": "install.html#system-requirements",
+    "title": "Installation & Quickstart",
+    "section": "",
+    "text": "Python \\(\\geq\\) 3.9\nGPU (CUDA) optional but recommended for datasets &gt;20K spots"
+  },
+  {
+    "objectID": "install.html#installation",
+    "href": "install.html#installation",
+    "title": "Installation & Quickstart",
+    "section": "Installation",
+    "text": "Installation\npip install git+https://github.com/iebuker/SCG.git"
+  },
+  {
+    "objectID": "install.html#quickstart",
+    "href": "install.html#quickstart",
+    "title": "Installation & Quickstart",
+    "section": "Quickstart",
+    "text": "Quickstart\nThe core SCG workflow has four steps: simulate or load data, build the kernel, fit the model, and classify edges.\n\n1. Setup\nimport torch\nimport scr\n\nscr.set_seed(123)\n\n\n2. Data & kernel\nY, S, info = scr.simulate_data_cov(N=2500, p=30)\n\ninit = scr.scr_init(Y, L=7, K=7, device=scr.DEVICE, dtype=scr.DTYPE)\n\nhp = scr.pick_kernel_params(init, S)\nKmat = scr.rq_kernel(S, rho=hp[\"rho\"], alpha=hp[\"alpha\"])\n\n\n3. Fit\nfit = scr.cavi(\n    torch.as_tensor(Y, device=scr.DEVICE, dtype=scr.DTYPE),\n    torch.as_tensor(Kmat, device=scr.DEVICE, dtype=scr.DTYPE),\n    init,\n    max_iter=60,\n)\n\n\n4. Identify SCGs\nresults = scr.classify_edges(fit[\"params\"], M=500, alpha=0.1)\nprint(results[results[\"scg\"]])\nFor a full walkthrough using real data, see the Data Application page."
+  }
+]
