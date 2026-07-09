@@ -1,8 +1,8 @@
-# SCR: Spatial Covariance Regression
+# SCG: Spatially Co-expressed Gene Identification
 
 ## Model
 
-Observations `Y` (n spots × p genes) are modelled as
+Observations `Y` (`n` spots × `p` genes) are modelled as
 
 ```
 Y[i, :] = Theta @ Xi_i @ eta_i + epsilon_i
@@ -20,7 +20,12 @@ mean-field approximation.
 pip install git+https://github.com/iebuker/scr-python
 ```
 
-Requires Python ≥ 3.10 and PyTorch ≥ 2.0.
+Requires: 
+
+- numpy>=1.23
+- scikit-learn>=1.1
+- torch>=2.0
+- pandas>=1.4
 
 ## Quick start
 
@@ -46,12 +51,11 @@ K_t = torch.as_tensor(Kmat, device=scr.DEVICE, dtype=scr.DTYPE)
 out = scr.cavi(Y_t, K_t, init, max_iter=40)
 ```
 
-See `docs/vignette.qmd` for a full worked example on simulated
-spatial transcriptomics data.
+See https://iebuker.github.io/SCG/ for a full worked example in Python and R, along with installation instructions.
 
 ## Authors
 
-Ihsan Buker (iebuker@uab.edu) and Satwik Acharyya (acharyya@uab.edu)
+Ihsan E. Buker (iebuker@uab.edu) and Satwik Acharyya (acharyya@uab.edu)
 
 ## License
 
