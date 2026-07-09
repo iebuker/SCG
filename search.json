@@ -158,14 +158,14 @@
     "href": "install.html",
     "title": "Installation & Quickstart",
     "section": "",
-    "text": "Python \\(\\geq\\) 3.9\nGPU (CUDA) optional but recommended for datasets &gt;20K spots"
+    "text": "Python \\(\\geq\\) 3.10\nGPU (CUDA) optional but recommended for datasets &gt;20K spots"
   },
   {
     "objectID": "install.html#system-requirements",
     "href": "install.html#system-requirements",
     "title": "Installation & Quickstart",
     "section": "",
-    "text": "Python \\(\\geq\\) 3.9\nGPU (CUDA) optional but recommended for datasets &gt;20K spots"
+    "text": "Python \\(\\geq\\) 3.10\nGPU (CUDA) optional but recommended for datasets &gt;20K spots"
   },
   {
     "objectID": "install.html#installation",

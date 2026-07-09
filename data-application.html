@@ -239,7 +239,7 @@ window.Quarto = {
 </section>
 <section id="setup" class="level2">
 <h2 class="anchored" data-anchor-id="setup">Setup</h2>
-<div id="8ee30cb8" class="cell" data-execution_count="1">
+<div id="af9d585e" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pickle</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -256,7 +256,7 @@ window.Quarto = {
 <section id="data" class="level2">
 <h2 class="anchored" data-anchor-id="data">Data</h2>
 <p>For modeling purposes, we assume <span class="math inline">\(\boldsymbol{y}_i \sim \mathcal{N}_p(\boldsymbol{0}, \boldsymbol{\Sigma})\)</span> where <span class="math inline">\(\boldsymbol{\Sigma} = \operatorname{diag}(\sigma^2_1, \dots, \sigma^2_p)\)</span>, so the observed count matrix must first undergo a suitable normalization. Here, data were normalized using the <a href="https://link.springer.com/article/10.1186/s13059-019-1874-1">sctransform</a> approach; however, SCG is agnostic to the choice of normalization and a rich literature on variance-stabilizing transformations for spatial omics count data exists. The model requires the expression matrix <code>Y</code> to be oriented as <code>spots x genes</code> and the spatial coordinates matrix <code>S</code> as <code>spots x 2</code>. Spot-level region annotations are not required by SCG but are included here for downstream visualization.</p>
-<div id="57723cfd" class="cell" data-execution_count="2">
+<div id="fa66b061" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Y_np <span class="op">=</span> pd.read_csv(<span class="st">"../data/Y.csv"</span>).to_numpy()</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>spot_info <span class="op">=</span> pd.read_csv(<span class="st">"../data/spot_info.csv"</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -277,7 +277,7 @@ window.Quarto = {
 <section id="initialization" class="level3">
 <h3 class="anchored" data-anchor-id="initialization">Initialization</h3>
 <p>Initialization plays a critical role in variational inference. We provide <code>scr.scr_init</code>, which implements a sparse PCA-based warm start that performs well in practice (see Supplementary Materials for further details). The two key choices are <span class="math inline">\(L\)</span> and <span class="math inline">\(K\)</span>: we recommend <span class="math inline">\(L = \text{round}(2 \log G)\)</span> and <span class="math inline">\(K = L\)</span> as conservative defaults, though <span class="math inline">\(K\)</span> can alternatively be selected via SVD to explain a desired proportion of variance.</p>
-<div id="bf97c85a" class="cell" data-execution_count="3">
+<div id="f62871a3" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>K <span class="op">=</span> L <span class="op">=</span> np.<span class="bu">round</span>(<span class="dv">2</span> <span class="op">*</span> np.log(P)).astype(<span class="bu">int</span>)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>init <span class="op">=</span> scr.scr_init(</span>
@@ -300,7 +300,7 @@ window.Quarto = {
 <section id="kernel" class="level3">
 <h3 class="anchored" data-anchor-id="kernel">Kernel</h3>
 <p>The kernel function governs how spatial correlation decays with distance. <code>scr.pick_kernel_params</code> provides a data-driven heuristic for selecting hyperparameters from the initialization. For this dataset we scale the returned <code>rho</code> by 0.1, as the default length-scale produced overly broad spatial patterns; users should adjust this scaling if correlation fields appear too smooth or too noisy. Standardizing spatial coordinates prior to fitting can aid interpretability of the length-scale. Both squared-exponential and rational quadratic kernels are implemented; any other kernel can be substituted as needed.</p>
-<div id="94428398" class="cell" data-execution_count="4">
+<div id="a7b29b14" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>kernel_hypers <span class="op">=</span> scr.pick_kernel_params(init<span class="op">=</span>init, S<span class="op">=</span>S_np, score_quantile<span class="op">=</span><span class="fl">0.9</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>K_np <span class="op">=</span> scr.rq_kernel(</span>
@@ -314,7 +314,7 @@ window.Quarto = {
 <section id="cavi" class="level3">
 <h3 class="anchored" data-anchor-id="cavi">CAVI</h3>
 <p>Model fitting is done via coordinate-ascent variational inference (CAVI), which iteratively updates the variational parameters to maximize the evidence lower bound. We run for <code>max_iter=60</code> iterations. Examining the convergence plot below, we note that 20–30 iterations constitute an ideal stopping point as the relative L2 change in variational parameters is quite small thereafter. Users should increase the maximum number of iterations if the relative L2 change has not flattened by the final iteration.</p>
-<div id="98f110de" class="cell" data-execution_count="5">
+<div id="f0961952" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fit <span class="op">=</span> scr.cavi(</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    torch.as_tensor(Y_np, device<span class="op">=</span>scr.DEVICE, dtype<span class="op">=</span>scr.DTYPE),</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    torch.as_tensor(K_np, device<span class="op">=</span>scr.DEVICE, dtype<span class="op">=</span>scr.DTYPE),</span>
@@ -323,14 +323,14 @@ window.Quarto = {
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    verbose<span class="op">=</span><span class="va">False</span>,</span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="19896045" class="cell" data-execution_count="6">
+<div id="fe4ce4a6" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"../results/fit.pkl"</span>, <span class="st">"rb"</span>) <span class="im">as</span> f:</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    fit <span class="op">=</span> pickle.load(f)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="convergence" class="level3">
 <h3 class="anchored" data-anchor-id="convergence">Convergence</h3>
-<div id="09152286" class="cell" data-execution_count="7">
+<div id="be4b2592" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>trace <span class="op">=</span> fit[<span class="st">"trace"</span>]</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>plt.plot(trace[<span class="st">"L2_rel"</span>])</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Iteration"</span>)</span>
@@ -351,11 +351,11 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="scg-identification">SCG Identification</h2>
 <p>SCG identification is performed via <code>scr.classify_edges</code>, which applies Otsu thresholding to the posterior spatial standard deviations of each edge to obtain a data-driven threshold, then classifies edges as SCGs by controlling the false discovery rate at <span class="math inline">\(\alpha = 0.1\)</span>. The function returns a dataframe with one row per edge and a boolean <code>scg</code> column indicating classification. For this dataset, 143 of 1,275 possible edges were identified as SCGs, corresponding to 11.2% of all edges in the tumor-promoting inflammation pathway.</p>
 <p>To avoid materializing an <code>M x N x p x p</code> array, where <code>M</code> denotes the number of posterior samples, <code>scr.classify_edges</code> takes a streaming approach, materializing only an <code>M x E</code> array where <code>E</code> denotes the number of edges (i.e., <span class="math inline">\(\binom{p}{2}\)</span>). Users who wish to obtain posterior samples for downstream analysis can use the <code>scr.sample_*</code> functions.</p>
-<div id="e4582601" class="cell" data-execution_count="8">
+<div id="7a790667" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> scr.classify_edges(fit[<span class="st">"params"</span>], M<span class="op">=</span><span class="dv">500</span>, alpha<span class="op">=</span><span class="fl">0.1</span>)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>results.to_csv(<span class="st">"../results/results.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="daefeadf" class="cell" data-execution_count="9">
+<div id="4990f68d" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> pd.read_csv(<span class="st">"../results/results.csv"</span>, index_col<span class="op">=</span><span class="dv">0</span>)</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>scgs <span class="op">=</span> results[results[<span class="st">"scg"</span>]]</span>
@@ -373,7 +373,7 @@ window.Quarto = {
 <p>The analytical posterior mean covariance at each spot <span class="math inline">\(i\)</span> is given as:</p>
 <p><span class="math display">\[\mathbb{E}_q[\boldsymbol{\Sigma}(\mathbf{s}_i)] = \boldsymbol{\mu}_\Theta A_i \boldsymbol{\mu}_\Theta^\top + \text{diag}\left(\text{tr}(A_i \boldsymbol{\Sigma}_g^\Theta)\right)_{g=1}^G + \mathbb{E}_q[\boldsymbol{\Sigma}_0]\]</span></p>
 <p>where <span class="math inline">\(A_i = \boldsymbol{\mu}_{\Xi_i} \boldsymbol{\mu}_{\Xi_i}^\top + \text{diag}\left(\sum_k v_{i,rk}^\Xi\right)\)</span> is the posterior second moment of <span class="math inline">\(\Xi(\mathbf{s}_i)\)</span>, the <code>einsum</code> computes <span class="math inline">\(\text{tr}(A_i \boldsymbol{\Sigma}_g^\Theta)\)</span> for each gene <span class="math inline">\(g\)</span> capturing uncertainty from the global loadings <span class="math inline">\(\Theta\)</span>, and <span class="math inline">\(\mathbb{E}_q[\boldsymbol{\Sigma}_0]\)</span> is the residual variance. The resulting covariance array is then converted to correlation matrices using <code>scr.cov2cor</code>.</p>
-<div id="0473f87e" class="cell" data-execution_count="10">
+<div id="e1a8c221" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>params <span class="op">=</span> fit[<span class="st">"params"</span>]</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>mu_Theta <span class="op">=</span> scr.to_numpy(params[<span class="st">"mu_Theta"</span>])</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>mu_Xi <span class="op">=</span> scr.to_numpy(params[<span class="st">"mu_Xi"</span>])</span>
@@ -392,14 +392,14 @@ window.Quarto = {
 <span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>Corr_est <span class="op">=</span> np.array([scr.cov2cor(C) <span class="cf">for</span> C <span class="kw">in</span> Sigma_est])</span>
 <span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>np.save(<span class="st">"../results/Corr_est.npy"</span>, Corr_est)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="f43c1b64" class="cell" data-execution_count="11">
+<div id="695cb654" class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>Corr_est <span class="op">=</span> np.load(<span class="st">"../results/Corr_est.npy"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="spatially-varying-edges" class="level3">
 <h3 class="anchored" data-anchor-id="spatially-varying-edges">Spatially Varying Edges</h3>
 <p>We plot two representative SCG pairs alongside pathologist-annotated region boundaries. For each edge, the color at each spot encodes the posterior mean correlation, with red indicating positive co-expression and blue indicating negative co-expression.</p>
-<div id="f0a62e45" class="cell" data-execution_count="12">
+<div id="e326abfe" class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>boundary_colors <span class="op">=</span> {</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"T"</span>: <span class="st">"#1B9E77"</span>,</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"N"</span>: <span class="st">"#E6AB02"</span>,</span>
@@ -492,7 +492,7 @@ window.Quarto = {
 </section>
 <section id="session-info" class="level2">
 <h2 class="anchored" data-anchor-id="session-info">Session Info</h2>
-<div id="c9b20fa5" class="cell" data-execution_count="13">
+<div id="6b5d9ae6" class="cell" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> pkg <span class="kw">in</span> [<span class="st">"numpy"</span>, <span class="st">"torch"</span>, <span class="st">"scipy"</span>, <span class="st">"scikit-learn"</span>, <span class="st">"scr"</span>]:</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>pkg<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>importlib<span class="sc">.</span>metadata<span class="sc">.</span>version(pkg)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -633,7 +633,7 @@ scr: 0.1.0</code></pre>
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/iebuker\.github\.io\/SCG\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
