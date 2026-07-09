@@ -4,7 +4,7 @@ title: "Installation & Quickstart"
 
 ## System Requirements
 
-- Python $\geq$ 3.9
+- Python $\geq$ 3.10
 - GPU (CUDA) optional but recommended for datasets >20K spots
 
 ## Installation
