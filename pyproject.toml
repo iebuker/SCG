@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scr"
+version = "0.1.0"
+description = "Variational inference for spatial covariance regression"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Ihsan Buker", email = "iebuker@uab.edu" },
+    { name = "Satwik Acharyya", email = "acharyya@uab.edu" }
+]
+keywords = [
+    "bayesian-statistics",
+    "variational-inference",
+    "spatial-statistics",
+    "factor-model",
+    "gaussian-process",
+    "covariance-regression",
+]
+dependencies = [
+    "numpy>=1.23",
+    "scikit-learn>=1.1",
+    "torch>=2.0",
+    "pandas>=1.4",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["scr*"]
