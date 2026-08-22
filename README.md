@@ -17,7 +17,7 @@ mean-field approximation.
 ## Installation
 
 ```bash
-pip install git+https://github.com/iebuker/scr-python
+pip install git+https://github.com/iebuker/SCG.git
 ```
 
 Requires: 
