@@ -53,6 +53,13 @@ out = scr.cavi(Y_t, K_t, init, max_iter=40)
 
 See https://iebuker.github.io/SCG/ for a full worked example in Python and R, along with installation instructions.
 
+## Data availability
+
+The repository contains the data required to reproduce our analyses of the tumor-promoting inflammation pathway in the breast cancer application. All datasets, in both their raw and preprocessed forms, have been deposited in Zenodo:
+
+Buker, I., Ni, Y., Hicks, S., Kang, J., & Acharyya, S. (2026). *SCG: Identifying spatially co-expressed genes using spatial covariance regression* [Dataset]. Zenodo. https://doi.org/10.5281/zenodo.22061520
+
+
 ## Authors
 
 Ihsan E. Buker (iebuker@uab.edu) and Satwik Acharyya (acharyya@uab.edu)
