@@ -289,14 +289,12 @@ window.Quarto = {
 </section>
 <section id="installation" class="level2">
 <h2 class="anchored" data-anchor-id="installation">Installation</h2>
-<p>Requires Python <span class="math inline">\(\geq\)</span> 3.9. GPU support via CUDA is optional but recommended for datasets &gt;20K spots.</p>
+<p>Requires Python <span class="math inline">\(\geq\)</span> 3.10. GPU support via CUDA is optional but recommended for datasets &gt;20K spots.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install git+https://github.com/iebuker/SCG.git</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="citation" class="level2">
 <h2 class="anchored" data-anchor-id="citation">Citation</h2>
-<blockquote class="blockquote">
-<p><em>Manuscript in preparation.</em></p>
-</blockquote>
+<p>Buker, I. E., Ni, Y., Hicks, S. C., Kang, J., &amp; Acharyya, S. (2026). <a href="https://doi.org/10.64898/2026.09.01.748618"><em>SCG: Spatially co-expressed gene identification through spatially varying networks</em></a> [Preprint]. bioRxiv.</p>
 
 
 <!-- -->
@@ -427,7 +425,7 @@ window.Quarto = {
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/iebuker\.github\.io\/SCG\/");
+        var filterRegex = new RegExp('/' + window.location.host + '/');
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -796,7 +794,7 @@ window.Quarto = {
 <span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="fu">## Installation</span></span>
 <span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>Requires Python $\geq$ 3.9. GPU support via CUDA is optional but recommended for datasets &gt;20K spots.</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>Requires Python $\geq$ 3.10. GPU support via CUDA is optional but recommended for datasets &gt;20K spots.</span>
 <span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="in">```bash</span></span>
 <span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install git+https://github.com/iebuker/SCG.git</span>
@@ -804,14 +802,14 @@ window.Quarto = {
 <span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="fu">## Citation</span></span>
 <span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; *Manuscript in preparation.* </span></span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>Buker, I. E., Ni, Y., Hicks, S. C., Kang, J., &amp; Acharyya, S. (2026). <span class="co">[</span><span class="ot">*SCG: Spatially co-expressed gene identification through spatially varying networks*</span><span class="co">](https://doi.org/10.64898/2026.09.01.748618)</span> <span class="co">[</span><span class="ot">Preprint</span><span class="co">]</span>. bioRxiv.</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>Buker, Ni, Hicks, Kang &amp; Acharyya. Manuscript in preparation.</p>
-</div>   
+      &nbsp;
+    </div>   
     <div class="nav-footer-center">
       &nbsp;
     <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/iebuker/SCG/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div>

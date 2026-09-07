@@ -21,7 +21,6 @@ website:
       - icon: github
         href: https://github.com/iebuker/SCG
   page-footer:
-    left: "Buker, Ni, Hicks, Kang & Acharyya. Manuscript in preparation."
     right:
       - icon: github
         href: https://github.com/iebuker/SCG
