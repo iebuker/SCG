@@ -70,4 +70,4 @@ MIT
 
 ## Publication 
 
-Buker, I. E., Ni, Y., Hicks, S. C., Kang, J., & Acharyya, S. (2026). SCG: Spatially co-expressed gene identification through spatially varying networks. bioRxiv. https://doi.org/10.64898/2026.09.01.748618
+Buker, I. E., Ni, Y., Hicks, S. C., Kang, J., & Acharyya, S. (2026). *SCG: Spatially co-expressed gene identification through spatially varying networks* [Preprint]. bioRxiv. https://doi.org/10.64898/2026.09.01.748618
